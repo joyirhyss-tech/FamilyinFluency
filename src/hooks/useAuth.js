@@ -39,14 +39,12 @@ export function useAuth() {
     !!SUPER_ADMIN_EMAIL &&
     session.user.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
 
-  /** Send a magic link to the given email address. */
-  const signInWithEmail = useCallback(async (email) => {
+  /** Sign in with email and password. */
+  const signInWithEmail = useCallback(async (email, password) => {
     if (!supabase) return { error: { message: "Supabase not configured" } };
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
+      password,
     });
     return { error };
   }, []);

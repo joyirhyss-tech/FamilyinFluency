@@ -12,8 +12,8 @@ export function Gate({ families, onActivate, onOwnerMode, isSuperAdmin, onAdminL
   // Admin login state
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   const [adminSending, setAdminSending] = useState(false);
-  const [adminSent, setAdminSent] = useState(false);
   const [adminError, setAdminError] = useState(null);
 
   // Auto-enter owner mode if super admin is authenticated
@@ -46,15 +46,13 @@ export function Gate({ families, onActivate, onOwnerMode, isSuperAdmin, onAdminL
   };
 
   const handleAdminLogin = async () => {
-    if (!adminEmail.trim() || !onAdminLogin) return;
+    if (!adminEmail.trim() || !adminPassword || !onAdminLogin) return;
     setAdminSending(true);
     setAdminError(null);
-    const { error } = await onAdminLogin(adminEmail.trim());
+    const { error } = await onAdminLogin(adminEmail.trim(), adminPassword);
     setAdminSending(false);
     if (error) {
       setAdminError(error.message);
-    } else {
-      setAdminSent(true);
     }
   };
 
@@ -156,63 +154,51 @@ export function Gate({ families, onActivate, onOwnerMode, isSuperAdmin, onAdminL
               <h2 className="font-[family-name:var(--font-hand)] text-2xl font-bold text-ink mb-1">
                 Super Admin
               </h2>
+              <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)] mb-4">
+                Sign in with your admin credentials
+              </p>
 
-              {adminSent ? (
-                <div className="py-4">
-                  <div className="text-3xl mb-2">&#9993;</div>
-                  <p className="text-sm text-ink font-bold mb-1">Check your inbox</p>
-                  <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)]">
-                    We sent a magic link to<br />
-                    <span className="font-bold text-pencil">{adminEmail}</span>
-                  </p>
-                  <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)] mt-3">
-                    Click the link in the email to sign in.
-                  </p>
-                  <button
-                    onClick={() => { setAdminSent(false); setAdminEmail(""); }}
-                    className="text-xs text-blue-ink stamp-btn mt-3"
-                  >
-                    Send again
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)] mb-4">
-                    Enter your admin email for a magic sign-in link
-                  </p>
+              <input
+                type="email"
+                value={adminEmail}
+                onChange={(e) => { setAdminEmail(e.target.value); setAdminError(null); }}
+                onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
+                placeholder="you@email.com"
+                className="w-full px-4 py-3 bg-paper-dark border-2 border-paper-line rounded-sm text-center text-sm
+                  font-[family-name:var(--font-typed)] outline-none focus:border-ink mb-3"
+                autoFocus
+                autoComplete="email"
+              />
 
-                  <input
-                    type="email"
-                    value={adminEmail}
-                    onChange={(e) => { setAdminEmail(e.target.value); setAdminError(null); }}
-                    onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
-                    placeholder="you@email.com"
-                    className="w-full px-4 py-3 bg-paper-dark border-2 border-paper-line rounded-sm text-center text-sm
-                      font-[family-name:var(--font-typed)] outline-none focus:border-ink"
-                    autoFocus
-                    autoComplete="email"
-                  />
+              <input
+                type="password"
+                value={adminPassword}
+                onChange={(e) => { setAdminPassword(e.target.value); setAdminError(null); }}
+                onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
+                placeholder="Password"
+                className="w-full px-4 py-3 bg-paper-dark border-2 border-paper-line rounded-sm text-center text-sm
+                  font-[family-name:var(--font-typed)] outline-none focus:border-ink"
+                autoComplete="current-password"
+              />
 
-                  {adminError && (
-                    <p className="text-xs text-red-pen mt-2 font-[family-name:var(--font-typed)]">
-                      {adminError}
-                    </p>
-                  )}
-
-                  <Button
-                    onClick={handleAdminLogin}
-                    variant="stamp"
-                    size="lg"
-                    className="w-full mt-4"
-                    disabled={!adminEmail.trim() || adminSending}
-                  >
-                    {adminSending ? "Sending..." : "Send Magic Link"}
-                  </Button>
-                </>
+              {adminError && (
+                <p className="text-xs text-red-pen mt-2 font-[family-name:var(--font-typed)]">
+                  {adminError}
+                </p>
               )}
 
+              <Button
+                onClick={handleAdminLogin}
+                variant="stamp"
+                size="lg"
+                className="w-full mt-4"
+                disabled={!adminEmail.trim() || !adminPassword || adminSending}
+              >
+                {adminSending ? "Signing in..." : "Sign In"}
+              </Button>
+
               <button
-                onClick={() => { setShowAdminLogin(false); setAdminError(null); setAdminSent(false); }}
+                onClick={() => { setShowAdminLogin(false); setAdminError(null); setAdminPassword(""); }}
                 className="text-xs text-pencil-light stamp-btn mt-3 hover:text-ink"
               >
                 &larr; Back to family code
