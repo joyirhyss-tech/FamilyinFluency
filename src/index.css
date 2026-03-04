@@ -1,0 +1,688 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Patrick+Hand&family=Indie+Flower&family=Shadows+Into+Light&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f5f0e8;
+  --color-paper-dark: #ebe4d6;
+  --color-paper-line: #d4cdc0;
+  --color-ink: #2d2a26;
+  --color-pencil: #6b6560;
+  --color-pencil-light: #9e9790;
+  --color-red-pen: #c0392b;
+  --color-blue-ink: #2c5f8a;
+  --color-green-check: #27774a;
+  --color-highlight: #e8c84a;
+  --color-highlight-soft: #f5ebc4;
+  --color-wax-seal: #8b3a3a;
+  --color-wax-seal-light: #b85c5c;
+  --color-tape-blue: #a8c8e8;
+  --color-tape-pink: #e8b8c8;
+  --color-tape-green: #b8d8c8;
+  --color-tape-yellow: #e8d8a8;
+
+  --font-hand: 'Caveat', cursive;
+  --font-print: 'Patrick Hand', cursive;
+  --font-typed: 'Courier New', monospace;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-print);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Notebook paper with ruled lines */
+.notebook-paper {
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(var(--color-paper-line) 1px, transparent 1px);
+  background-size: 100% 32px;
+  background-position: 0 16px;
+}
+
+/* Paper card */
+.paper-card {
+  background-color: var(--color-paper);
+  border: 1.5px solid var(--color-paper-line);
+  border-radius: 4px;
+  box-shadow:
+    2px 3px 0 rgba(0,0,0,0.04),
+    inset 0 0 40px rgba(0,0,0,0.02);
+  position: relative;
+}
+
+.paper-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Sticky note */
+.sticky-note {
+  background: linear-gradient(135deg, #fef9c3 0%, #fde68a 100%);
+  border: 1px solid #d4a848;
+  border-radius: 2px;
+  transform: rotate(-1.5deg);
+  box-shadow: 2px 3px 6px rgba(0,0,0,0.1);
+  padding: 0.75rem 1rem;
+  font-family: var(--font-hand);
+  font-size: 1.05rem;
+}
+
+/* Washi tape */
+.washi-tape { position: relative; }
+.washi-tape::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 60px;
+  height: 14px;
+  background-color: var(--color-tape-blue);
+  opacity: 0.6;
+  border-radius: 1px;
+}
+.washi-pink::before { background-color: var(--color-tape-pink); }
+.washi-green::before { background-color: var(--color-tape-green); }
+.washi-yellow::before { background-color: var(--color-tape-yellow); }
+
+/* Pencil line divider */
+.pencil-line {
+  border: none;
+  height: 1.5px;
+  background: var(--color-pencil-light);
+  opacity: 0.4;
+  margin: 1rem 0;
+}
+
+/* Stamp button */
+.stamp-btn {
+  transition: transform 0.15s ease;
+  cursor: pointer;
+}
+.stamp-btn:active { transform: scale(0.92); }
+.stamp-btn:hover { transform: scale(1.03); }
+
+/* Wax seal */
+.wax-seal {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-hand);
+  font-weight: 700;
+  color: white;
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,0.3),
+    inset 0 -2px 4px rgba(0,0,0,0.2),
+    0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Animations */
+@keyframes stamp-in {
+  0% { transform: scale(1.8) rotate(-8deg); opacity: 0; }
+  50% { transform: scale(0.95) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.stamp-appear { animation: stamp-in 0.4s ease-out forwards; }
+
+@keyframes draw-stroke {
+  from { stroke-dashoffset: 40; }
+  to { stroke-dashoffset: 0; }
+}
+.draw-check {
+  stroke-dasharray: 40;
+  animation: draw-stroke 0.5s ease-out forwards;
+}
+
+@keyframes page-enter {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.page-enter { animation: page-enter 0.3s ease-out; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fade-up 0.3s ease-out; }
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.pulse-ring { animation: pulse-ring 1.2s ease-out infinite; }
+
+@keyframes xp-pop {
+  0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+  60% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.xp-pop { animation: xp-pop 0.4s ease-out forwards; }
+
+/* Page flip animation for story reader */
+@keyframes page-flip-next-out {
+  0% { transform: perspective(800px) rotateY(0deg); opacity: 1; }
+  100% { transform: perspective(800px) rotateY(-15deg); opacity: 0; }
+}
+@keyframes page-flip-next-in {
+  0% { transform: perspective(800px) rotateY(15deg); opacity: 0; }
+  100% { transform: perspective(800px) rotateY(0deg); opacity: 1; }
+}
+@keyframes page-flip-prev-out {
+  0% { transform: perspective(800px) rotateY(0deg); opacity: 1; }
+  100% { transform: perspective(800px) rotateY(15deg); opacity: 0; }
+}
+@keyframes page-flip-prev-in {
+  0% { transform: perspective(800px) rotateY(-15deg); opacity: 0; }
+  100% { transform: perspective(800px) rotateY(0deg); opacity: 1; }
+}
+.page-flip-next { animation: page-flip-next-in 0.4s ease-out; transform-origin: left center; }
+.page-flip-prev { animation: page-flip-prev-in 0.4s ease-out; transform-origin: right center; }
+
+/* ═══════════════════════════════════════════════════════
+   INDEX CARD - Realistic 90s study flashcard
+   ═══════════════════════════════════════════════════════ */
+
+.index-card {
+  --card-cream: #fffef0;
+  --line-blue: #b8d4ea;
+  --margin-red: #E85C5C;
+  --line-spacing: 28px;
+  --margin-left: 38px;
+
+  background-color: var(--card-cream);
+  background-image:
+    /* Blue ruled lines */
+    repeating-linear-gradient(
+      var(--card-cream),
+      var(--card-cream) calc(var(--line-spacing) - 1px),
+      var(--line-blue) calc(var(--line-spacing) - 1px),
+      var(--line-blue) var(--line-spacing)
+    );
+  background-position: 0 28px;
+  position: relative;
+  min-height: 200px;
+  border: 1px solid #d2d2d2;
+  border-radius: 3px;
+  padding: 36px 20px 16px calc(var(--margin-left) + 14px);
+  line-height: var(--line-spacing);
+  font-family: var(--font-print);
+  color: #333;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.15),
+    0 0 40px rgba(0,0,0,0.04) inset,
+    inset 0 0 30px rgba(139,119,72,0.06);
+}
+
+/* Red margin line */
+.index-card::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  top: 0;
+  left: var(--margin-left);
+  bottom: 0;
+  border-left: 2px solid var(--margin-red);
+  opacity: 0.7;
+  z-index: 1;
+}
+
+/* Paper grain overlay */
+.index-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+  mix-blend-mode: multiply;
+}
+
+/* Binder holes along the top */
+.index-holes {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 0 60px;
+  pointer-events: none;
+  z-index: 2;
+}
+.index-holes span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d4cbb5;
+  border: 1px solid #c0b8a8;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+}
+
+/* Card number (top right corner) */
+.index-number {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--font-typed);
+  font-size: 10px;
+  color: #9e9790;
+  z-index: 2;
+}
+
+/* Language label (written in pencil near margin) */
+.index-label {
+  display: block;
+  font-family: var(--font-typed);
+  font-size: 11px;
+  color: #9e9790;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Main word - big handwritten style */
+.index-word {
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1.3;
+  color: #2d2a26;
+  margin: 8px 0;
+  word-break: break-word;
+}
+
+/* Source story - small pencil text */
+.index-source {
+  font-family: var(--font-typed);
+  font-size: 10px;
+  color: #9e9790;
+  margin-top: 8px;
+}
+
+/* Tap hint */
+.index-hint {
+  font-family: var(--font-typed);
+  font-size: 10px;
+  color: #c0b8a8;
+  margin-top: 12px;
+}
+
+/* Card stack effect - cards behind */
+.index-card-stack {
+  position: relative;
+}
+.index-card-stack::before,
+.index-card-stack::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: -4px;
+  bottom: -4px;
+  background: var(--card-cream, #fffef0);
+  border: 1px solid #d2d2d2;
+  border-radius: 3px;
+  z-index: -1;
+}
+.index-card-stack::before {
+  transform: rotate(1.2deg);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.index-card-stack::after {
+  transform: rotate(-0.8deg) translate(-2px, 3px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* 3D flip container */
+.index-card-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Front and back faces */
+.index-card-front,
+.index-card-back {
+  backface-visibility: hidden;
+}
+.index-card-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateX(180deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Slide animations (card being pulled from/placed on stack) */
+@keyframes index-slide-out {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateX(80px) rotate(3deg); opacity: 0; }
+}
+@keyframes index-slide-in {
+  0% { transform: translateX(-60px) rotate(-2deg); opacity: 0; }
+  100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+}
+@keyframes index-slide-out-prev {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateX(-80px) rotate(-3deg); opacity: 0; }
+}
+@keyframes index-slide-in-prev {
+  0% { transform: translateX(60px) rotate(2deg); opacity: 0; }
+  100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+}
+.index-slide-out { animation: index-slide-out 0.25s ease-in forwards; }
+.index-slide-in { animation: index-slide-in 0.35s ease-out; }
+.index-slide-out-prev { animation: index-slide-out-prev 0.25s ease-in forwards; }
+.index-slide-in-prev { animation: index-slide-in-prev 0.35s ease-out; }
+
+/* ═══════════════════════════════════════════════════════
+   STORYBOOK - Children's book reader feel
+   ═══════════════════════════════════════════════════════ */
+
+/* Book page with binding shadow */
+.book-page {
+  position: relative;
+  background: #faf8f2;
+  border-radius: 0 6px 6px 0;
+  box-shadow:
+    -3px 0 8px rgba(0,0,0,0.06),
+    0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* Binding gutter shadow */
+.book-page::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.08) 0%,
+    rgba(0, 0, 0, 0.04) 30%,
+    rgba(0, 0, 0, 0.01) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Paper texture on book page */
+.book-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+  mix-blend-mode: multiply;
+}
+
+/* Bookmark ribbon */
+.bookmark-ribbon {
+  position: absolute;
+  top: -2px;
+  right: 20px;
+  width: 16px;
+  height: 44px;
+  background: linear-gradient(to bottom, #c0392b 0%, #a33225 100%);
+  z-index: 5;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+}
+.bookmark-ribbon::after {
+  content: '';
+  display: block;
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  border: 8px solid #a33225;
+  border-bottom-color: transparent;
+}
+
+/* Drop cap for story first letter */
+.story-text::first-letter {
+  font-family: var(--font-hand);
+  font-size: 3em;
+  float: left;
+  line-height: 0.8;
+  margin-right: 0.06em;
+  margin-top: 0.05em;
+  color: var(--color-wax-seal);
+  font-weight: 700;
+}
+
+/* Dog-eared page corner */
+.page-dog-ear {
+  position: relative;
+  overflow: hidden;
+}
+.page-dog-ear::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(315deg, #e8e0d0 50%, transparent 50%);
+  box-shadow: -1px -1px 2px rgba(0,0,0,0.05);
+}
+
+/* Upgraded page flip with perspective lift */
+@keyframes book-page-next {
+  0% { transform: perspective(1200px) rotateY(12deg) translateZ(0px); opacity: 0; }
+  40% { transform: perspective(1200px) rotateY(4deg) translateZ(20px); opacity: 0.8; }
+  100% { transform: perspective(1200px) rotateY(0deg) translateZ(0px); opacity: 1; }
+}
+@keyframes book-page-prev {
+  0% { transform: perspective(1200px) rotateY(-12deg) translateZ(0px); opacity: 0; }
+  40% { transform: perspective(1200px) rotateY(-4deg) translateZ(20px); opacity: 0.8; }
+  100% { transform: perspective(1200px) rotateY(0deg) translateZ(0px); opacity: 1; }
+}
+.book-flip-next { animation: book-page-next 0.5s ease-out; transform-origin: left center; }
+.book-flip-prev { animation: book-page-prev 0.5s ease-out; transform-origin: right center; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-pencil-light); border-radius: 3px; }
+
+/* Input reset */
+input, textarea {
+  font-family: var(--font-print);
+}
+
+/* Dog ear on cards */
+.dog-ear {
+  position: relative;
+  overflow: hidden;
+}
+.dog-ear::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(225deg, var(--color-paper-dark) 50%, transparent 50%);
+  box-shadow: -1px 1px 2px rgba(0,0,0,0.05);
+}
+
+/* ═══════════════════════════════════════════════════════
+   KARAOKE - Word-by-word highlighting
+   ═══════════════════════════════════════════════════════ */
+
+.karaoke-word {
+  background-image: linear-gradient(to right, var(--hl-color, rgba(200,150,50,0.25)), var(--hl-color, rgba(200,150,50,0.25)));
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  background-position: left center;
+  border-radius: 2px;
+  padding: 1px 0;
+  transition: none;
+}
+
+.karaoke-active {
+  background-size: 100% 100%;
+  transition: background-size var(--word-dur, 0.3s) linear;
+}
+
+.karaoke-past {
+  background-image: linear-gradient(to right, var(--hl-color-past, rgba(200,150,50,0.15)), var(--hl-color-past, rgba(200,150,50,0.15)));
+  background-size: 100% 100%;
+  transition: none;
+}
+
+/* Narration progress bar */
+.narration-progress-track {
+  height: 3px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.narration-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+/* Speaker pulse animation */
+@keyframes speaker-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.speaker-pulse {
+  animation: speaker-bounce 1s ease-in-out infinite;
+}
+
+/* Story complete celebration */
+@keyframes seal-stamp {
+  0% { transform: scale(2.5) rotate(-15deg); opacity: 0; }
+  40% { transform: scale(0.9) rotate(3deg); opacity: 1; }
+  60% { transform: scale(1.05) rotate(-1deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.story-complete-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  animation: fade-up 0.3s ease-out;
+}
+.story-complete-seal {
+  animation: seal-stamp 0.6s ease-out forwards;
+}
+
+/* ═══════════════════════════════════════════════════════
+   DAILY ONE WORD REVIEW - Torn paper journal
+   ═══════════════════════════════════════════════════════ */
+
+.journal-paper {
+  background: #faf8f2;
+  border: 1px solid #d4cdc0;
+  border-radius: 2px;
+  position: relative;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.08),
+    inset 0 0 30px rgba(0,0,0,0.02);
+}
+
+/* Torn edge effect at top */
+.journal-paper::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 4px;
+  right: 4px;
+  height: 8px;
+  background: #faf8f2;
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,4 Q5,0 10,4 Q15,8 20,4 Q25,0 30,4 Q35,8 40,4 Q45,0 50,4 Q55,8 60,4 Q65,0 70,4 Q75,8 80,4 Q85,0 90,4 Q95,8 100,4 Q105,0 110,4 Q115,8 120,4 Q125,0 130,4 Q135,8 140,4 Q145,0 150,4 Q155,8 160,4 Q165,0 170,4 Q175,8 180,4 Q185,0 190,4 Q195,8 200,4 V8 H0 Z' fill='white'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,4 Q5,0 10,4 Q15,8 20,4 Q25,0 30,4 Q35,8 40,4 Q45,0 50,4 Q55,8 60,4 Q65,0 70,4 Q75,8 80,4 Q85,0 90,4 Q95,8 100,4 Q105,0 110,4 Q115,8 120,4 Q125,0 130,4 Q135,8 140,4 Q145,0 150,4 Q155,8 160,4 Q165,0 170,4 Q175,8 180,4 Q185,0 190,4 Q195,8 200,4 V8 H0 Z' fill='white'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+}
+
+/* Faint ruled lines */
+.journal-paper .journal-lines {
+  background-image:
+    linear-gradient(transparent 27px, #d4cdc0 27px, #d4cdc0 28px, transparent 28px);
+  background-size: 100% 28px;
+}
+
+/* Handwriting font classes */
+.hand-caveat { font-family: 'Caveat', cursive; }
+.hand-patrick { font-family: 'Patrick Hand', cursive; }
+.hand-indie { font-family: 'Indie Flower', cursive; }
+.hand-shadows { font-family: 'Shadows Into Light', cursive; }
+
+/* Level badge pill */
+.level-badge {
+  font-family: var(--font-typed);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.9);
+  white-space: nowrap;
+}
+
+/* Vocab row clickable */
+.vocab-row {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.vocab-row:active {
+  background-color: rgba(0,0,0,0.04);
+}
+
+/* ═══════════════════════════════════════════════════════
+   PIN UNLOCK
+   ═══════════════════════════════════════════════════════ */
+
+.pin-unlock-enter {
+  animation: fade-up 0.2s ease-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+.shake {
+  animation: shake 0.4s ease-out;
+}
+
+/* Gate screen — wax seal drop animation */
+@keyframes seal-drop {
+  0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.seal-drop {
+  animation: seal-drop 0.5s ease-out 0.2s forwards;
+  opacity: 0;
+}
