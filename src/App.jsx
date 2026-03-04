@@ -6,6 +6,7 @@ import { DEFAULT_FAMILIES, findFamily, generateFamilyCode } from "./data/familie
 import { familyKey } from "./utils/familyKey";
 import { useSupabaseSync } from "./hooks/useSupabaseSync";
 import { useAuth } from "./hooks/useAuth";
+import { supabase } from "./lib/supabase";
 
 const VALID_VIEWS = ["splash","join","home","dashboard","drill","speak","library","story","flashcards","collage","admin"];
 const getHashView = () => {
@@ -52,7 +53,7 @@ export default function App() {
   };
 
   const deleteFamily = (code) => {
-    setFamilies((prev) => prev.filter((f) => f.code !== code));
+    setFamilies((prev) => prev.map((f) => f.code === code ? { ...f, deleted: true } : f));
   };
 
   // ── Family gating ──────────────────────────────────────────────
@@ -270,12 +271,36 @@ export default function App() {
 
   const deletePlayer = (i) => {
     if (i === 0 && !isSuperAdmin && !ownerMode) return; // Super admin / owner can delete anyone
+    const player = players[i];
     setPlayers((prev) => prev.filter((_, idx) => idx !== i));
     if (active === i) {
       setActive(null);
       setView("home");
     }
+    // Soft-delete in Supabase so sync doesn't resurrect the player
+    if (supabase && player?.id) {
+      supabase
+        .from("players")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", player.id)
+        .then(({ error }) => {
+          if (error) console.warn("[sync] soft-delete error:", error.message);
+        });
+    }
   };
+
+  const deleteWord = (playerId, date) => {
+    try {
+      const raw = localStorage.getItem(dailyWordsKey);
+      const words = raw ? JSON.parse(raw) : [];
+      const filtered = words.filter((w) => !(w.playerId === playerId && w.date === date));
+      localStorage.setItem(dailyWordsKey, JSON.stringify(filtered));
+      // Trigger ls-change so Supabase sync picks it up
+      window.dispatchEvent(new Event("ls-change"));
+    } catch { /* ignore */ }
+  };
+
+  const isCreator = active === 0 || isSuperAdmin || ownerMode;
 
   // ── View guards (redirect if missing data) ────────────────────
   useEffect(() => {
@@ -287,14 +312,24 @@ export default function App() {
     }
   }, [view, effectiveUser, storyId, setView]);
 
+  // When super admin auth lands (e.g. magic link redirect while inside a circle),
+  // always clear the active family so we land on the Circle Creator Dashboard
+  useEffect(() => {
+    if (isSuperAdmin) {
+      setOwnerMode(true);
+      setActiveFamily(null);
+      setActive(null);
+    }
+  }, [isSuperAdmin]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Gate check ─────────────────────────────────────────────────
   if (!activeFamily && !ownerMode) {
     if (authLoading) return null; // Wait for auth session check
     return (
       <Gate
-        families={families}
+        families={families.filter((f) => !f.deleted)}
         onActivate={activateFamily}
-        onOwnerMode={() => setOwnerMode(true)}
+        onOwnerMode={() => { setOwnerMode(true); setActiveFamily(null); setActive(null); setView("splash"); }}
         isSuperAdmin={isSuperAdmin}
         onAdminLogin={signInWithEmail}
         initialCode={joinParam}
@@ -362,6 +397,8 @@ export default function App() {
           onBack={() => setView("splash")}
           onAdmin={() => setView("admin")}
           onCollage={() => setView("collage")}
+          onDeleteWord={deleteWord}
+          isCreator={isCreator}
         />
       );
 
@@ -459,6 +496,8 @@ export default function App() {
           onBack={() => setView("home")}
           onSwitchFamily={deactivateFamily}
           isSuperAdmin={isSuperAdmin || ownerMode}
+          isCreator={isCreator}
+          activeFamily={activeFamily}
         />
       );
 

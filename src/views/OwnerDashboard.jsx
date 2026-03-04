@@ -50,7 +50,8 @@ export function OwnerDashboard({ families, onCreateFamily, onDeleteFamily, onSel
     }
   };
 
-  const atLimit = (families || []).length >= MAX_CIRCLES;
+  const activeFamilies = (families || []).filter((f) => !f.deleted);
+  const atLimit = activeFamilies.length >= MAX_CIRCLES;
 
   return (
     <div className="min-h-screen bg-paper page-enter">
@@ -62,10 +63,10 @@ export function OwnerDashboard({ families, onCreateFamily, onDeleteFamily, onSel
           <BackArrow size={14} /> Sign Out
         </button>
         <h1 className="text-2xl font-[family-name:var(--font-hand)] font-bold">
-          Owner Dashboard
+          Super Admin Dashboard
         </h1>
         <p className="text-pencil-light text-xs font-[family-name:var(--font-typed)]">
-          {(families || []).length} of {MAX_CIRCLES} circles
+          {activeFamilies.length} of {MAX_CIRCLES} circles
         </p>
       </div>
 
@@ -117,7 +118,7 @@ export function OwnerDashboard({ families, onCreateFamily, onDeleteFamily, onSel
         )}
 
         {/* Family Cards */}
-        {(families || []).map((family) => {
+        {activeFamilies.map((family) => {
           const count = getMemberCount(family.code);
           const members = getMembers(family.code);
           const link = magicLink(family.code);

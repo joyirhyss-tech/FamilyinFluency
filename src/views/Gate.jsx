@@ -75,7 +75,7 @@ export function Gate({ families, onActivate, onOwnerMode, isSuperAdmin, onAdminL
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="h-[100dvh] flex flex-col items-center bg-paper px-6 text-center notebook-paper overflow-hidden">
+    <div className="h-[100dvh] flex flex-col items-center bg-paper px-6 text-center notebook-paper overflow-hidden relative">
       <div className="flex-1 min-h-8" />
 
       <div className="page-enter flex flex-col items-center shrink-0">
@@ -93,23 +93,23 @@ export function Gate({ families, onActivate, onOwnerMode, isSuperAdmin, onAdminL
 
         {/* Invitation card */}
         <div className="paper-card p-6 w-72 max-w-full">
-          {/* Wax seal decoration */}
-          <div className="flex justify-center mb-3">
-            <div className="seal-drop">
-              <svg width="48" height="48" viewBox="0 0 48 48" className="text-wax-seal">
-                <circle cx="24" cy="24" r="22" fill="currentColor" opacity="0.9" />
-                <circle cx="24" cy="24" r="18" fill="none" stroke="#fff" strokeWidth="1" opacity="0.3" />
-                {/* Key icon */}
-                <circle cx="24" cy="19" r="5" fill="none" stroke="#fff" strokeWidth="2" opacity="0.8" />
-                <line x1="24" y1="24" x2="24" y2="34" stroke="#fff" strokeWidth="2" opacity="0.8" />
-                <line x1="24" y1="30" x2="28" y2="30" stroke="#fff" strokeWidth="2" opacity="0.8" />
-                <line x1="24" y1="33" x2="27" y2="33" stroke="#fff" strokeWidth="2" opacity="0.8" />
-              </svg>
-            </div>
-          </div>
-
-          {!showAdminLogin ? (
+            {!showAdminLogin ? (
             <>
+              {/* Wax seal decoration — only on family code view */}
+              <div className="flex justify-center mb-3">
+                <div className="seal-drop">
+                  <svg width="48" height="48" viewBox="0 0 48 48" className="text-wax-seal">
+                    <circle cx="24" cy="24" r="22" fill="currentColor" opacity="0.9" />
+                    <circle cx="24" cy="24" r="18" fill="none" stroke="#fff" strokeWidth="1" opacity="0.3" />
+                    {/* Key icon */}
+                    <circle cx="24" cy="19" r="5" fill="none" stroke="#fff" strokeWidth="2" opacity="0.8" />
+                    <line x1="24" y1="24" x2="24" y2="34" stroke="#fff" strokeWidth="2" opacity="0.8" />
+                    <line x1="24" y1="30" x2="28" y2="30" stroke="#fff" strokeWidth="2" opacity="0.8" />
+                    <line x1="24" y1="33" x2="27" y2="33" stroke="#fff" strokeWidth="2" opacity="0.8" />
+                  </svg>
+                </div>
+              </div>
+
               <h2 className="font-[family-name:var(--font-hand)] text-2xl font-bold text-ink mb-1">
                 Family &amp; Friends Circle Key
               </h2>
@@ -122,7 +122,7 @@ export function Gate({ families, onActivate, onOwnerMode, isSuperAdmin, onAdminL
                 value={code}
                 onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(false); }}
                 onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                placeholder="MAPLE-TREE"
+                placeholder="ENTER-CODE"
                 className={`
                   w-full px-4 py-3 bg-paper-dark border-2 rounded-sm text-center text-lg
                   font-[family-name:var(--font-hand)] font-bold tracking-wider
@@ -221,18 +221,23 @@ export function Gate({ families, onActivate, onOwnerMode, isSuperAdmin, onAdminL
           )}
         </div>
 
-        {/* Admin login toggle */}
-        {!showAdminLogin && onAdminLogin && (
-          <button
-            onClick={() => setShowAdminLogin(true)}
-            className="text-xs text-pencil-light stamp-btn mt-4 hover:text-ink font-[family-name:var(--font-typed)]"
-          >
-            Super Admin Login
-          </button>
-        )}
       </div>
 
       <div className="flex-1 min-h-4" />
+
+      {/* Hidden admin gear — subtle icon, no label */}
+      {!showAdminLogin && onAdminLogin && (
+        <button
+          onClick={() => setShowAdminLogin(true)}
+          className="absolute bottom-4 right-4 text-pencil-light/50 hover:text-pencil-light stamp-btn p-2"
+          aria-label="Admin"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

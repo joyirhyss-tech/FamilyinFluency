@@ -4,8 +4,10 @@ import { BackArrow, FlameIcon } from "../components/icons/Icons";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Avatar } from "../components/ui/Avatar";
+import { magicLink } from "../data/families";
 
-export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer, onDeletePlayer, onBack, onSwitchFamily, isSuperAdmin }) {
+export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer, onDeletePlayer, onBack, onSwitchFamily, isSuperAdmin, isCreator, activeFamily }) {
+  const [inviteCopied, setInviteCopied] = useState(false);
   const [editing, setEditing] = useState(null); // player index
   const [editStreak, setEditStreak] = useState("");
   const [editName, setEditName] = useState("");
@@ -108,7 +110,7 @@ export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer,
                 <p className="font-[family-name:var(--font-hand)] text-lg text-ink font-bold">{familyName}</p>
               )}
             </div>
-            {!editingFamily && (
+            {!editingFamily && (isSuperAdmin || isCreator) && (
               <button
                 onClick={() => { setEditFamilyName(familyName); setEditingFamily(true); }}
                 className="text-xs text-blue-ink stamp-btn px-2 py-1 border border-paper-line rounded-sm hover:bg-paper-dark"
@@ -118,6 +120,35 @@ export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer,
             )}
           </div>
         </Card>
+
+        {/* Invite your F&F */}
+        {activeFamily && (
+          <Card>
+            <p className="text-xs font-bold text-pencil uppercase tracking-wider mb-1">
+              Invite your F&amp;F
+            </p>
+            <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)] mb-2">
+              Share this link to invite your F&amp;F to your circle
+            </p>
+            <div className="bg-paper-dark rounded-sm p-2 border border-paper-line mb-2">
+              <p className="text-xs text-pencil font-[family-name:var(--font-typed)] truncate select-all">
+                {magicLink(activeFamily)}
+              </p>
+            </div>
+            <Button
+              onClick={() => {
+                navigator.clipboard.writeText(magicLink(activeFamily)).then(() => {
+                  setInviteCopied(true);
+                  setTimeout(() => setInviteCopied(false), 2000);
+                });
+              }}
+              variant="outline"
+              size="sm"
+            >
+              {inviteCopied ? "Copied!" : "Copy Link"}
+            </Button>
+          </Card>
+        )}
 
         {players.map((p, i) => {
           const isFirst = i === 0;
@@ -274,14 +305,24 @@ export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer,
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-2 mt-1">
-                  <button
-                    onClick={() => startEdit(i)}
-                    className="text-xs text-blue-ink stamp-btn px-2 py-1 border border-paper-line rounded-sm hover:bg-paper-dark"
-                  >
-                    Edit
-                  </button>
-                  {(!isFirst || isSuperAdmin) && (
+                <div className="flex gap-2 mt-1 flex-wrap">
+                  {(isSuperAdmin || isCreator) && (
+                    <button
+                      onClick={() => startEdit(i)}
+                      className="text-xs text-blue-ink stamp-btn px-2 py-1 border border-paper-line rounded-sm hover:bg-paper-dark"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {(isSuperAdmin || isCreator) && p.streak > 0 && (
+                    <button
+                      onClick={() => onUpdatePlayer(i, { streak: 0 })}
+                      className="text-xs text-pencil stamp-btn px-2 py-1 border border-paper-line rounded-sm hover:bg-paper-dark"
+                    >
+                      Reset Streak
+                    </button>
+                  )}
+                  {(isSuperAdmin || isCreator) && (!isFirst || isSuperAdmin) && (
                     <button
                       onClick={() => { setConfirmDelete(i); setEditing(null); }}
                       className="text-xs text-red-pen stamp-btn px-2 py-1 border border-paper-line rounded-sm hover:bg-paper-dark"

@@ -39,6 +39,8 @@ export function Home({
   onBack,
   onAdmin,
   onCollage,
+  onDeleteWord,
+  isCreator,
 }) {
   const [dailyWords, setDailyWords] = useLocalStorage(dailyWordsKey, []);
   const [wordInputs, setWordInputs] = useState({}); // { playerId: text }
@@ -114,7 +116,7 @@ export function Home({
               Family inFluency
             </h1>
             <p className="text-pencil-light text-xs font-[family-name:var(--font-typed)]">
-              The {familyName} family&#8217;s language journey
+              Your language journey, one word at a time
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -288,9 +290,20 @@ export function Home({
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-pencil mb-1">{p.name}</p>
                         {todayWord ? (
-                          <p className={`${fontClass} text-2xl text-ink leading-tight`}>
-                            {todayWord.word}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className={`${fontClass} text-2xl text-ink leading-tight`}>
+                              {todayWord.word}
+                            </p>
+                            {isCreator && onDeleteWord && (
+                              <button
+                                onClick={() => { onDeleteWord(p.id, todayWord.date); setDailyWords((prev) => prev.filter((w) => !(w.playerId === p.id && w.date === todayWord.date))); }}
+                                className="text-pencil-light/40 hover:text-red-pen stamp-btn flex-shrink-0"
+                                title="Delete word"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                              </button>
+                            )}
+                          </div>
                         ) : (
                           <div className="flex gap-2">
                             <input
@@ -315,9 +328,18 @@ export function Home({
                             {pastWords.map((pw) => (
                               <span
                                 key={pw.date}
-                                className={`${fontClass} text-xs text-pencil-light/60`}
+                                className={`${fontClass} text-xs text-pencil-light/60 inline-flex items-center gap-0.5`}
                               >
                                 {pw.word}
+                                {isCreator && onDeleteWord && (
+                                  <button
+                                    onClick={() => { onDeleteWord(p.id, pw.date); setDailyWords((prev) => prev.filter((w) => !(w.playerId === p.id && w.date === pw.date))); }}
+                                    className="text-pencil-light/30 hover:text-red-pen stamp-btn"
+                                    title="Delete word"
+                                  >
+                                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                  </button>
+                                )}
                               </span>
                             ))}
                           </div>

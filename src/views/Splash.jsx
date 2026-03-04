@@ -22,7 +22,7 @@ export function Splash({ familyName, playerCount, yearProgress, wordCount, onEnt
           Family inFluency
         </h1>
         <p className="text-pencil text-sm mb-0.5">
-          The {familyName} family&#8217;s language journey, one word at a time.
+          Your language journey, one word at a time.
         </p>
 
         {/* Year countdown */}

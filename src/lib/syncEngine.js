@@ -49,7 +49,7 @@ export async function pushFamilyData(supabase, familyCode, local) {
       start_date: p.startDate || null,
       sort_order: i,
       updated_at: now,
-      deleted_at: null,
+      // deleted_at intentionally omitted — never overwrite soft-delete flags
     }));
 
     const { error: plErr } = await supabase
@@ -96,6 +96,7 @@ export async function pullFamilyData(supabase, familyCode) {
         .from("players")
         .select("*")
         .eq("family_code", familyCode)
+        .is("deleted_at", null)
         .order("sort_order", { ascending: true }),
       supabase
         .from("daily_words")
