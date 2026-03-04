@@ -2,12 +2,26 @@ import { useState, useEffect, useRef } from "react";
 import { findFamily, OWNER_CODE } from "../data/families";
 import { Button } from "../components/ui/Button";
 
-export function Gate({ onActivate, onOwnerMode, initialCode }) {
+export function Gate({ families, onActivate, onOwnerMode, isSuperAdmin, onAdminLogin, initialCode }) {
   const [code, setCode] = useState(initialCode || "");
   const [error, setError] = useState(false);
   const [shaking, setShaking] = useState(false);
   const inputRef = useRef(null);
   const autoSubmitted = useRef(false);
+
+  // Admin login state
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminSending, setAdminSending] = useState(false);
+  const [adminSent, setAdminSent] = useState(false);
+  const [adminError, setAdminError] = useState(null);
+
+  // Auto-enter owner mode if super admin is authenticated
+  useEffect(() => {
+    if (isSuperAdmin) {
+      onOwnerMode();
+    }
+  }, [isSuperAdmin, onOwnerMode]);
 
   const handleSubmit = () => {
     const trimmed = code.trim().toUpperCase();
@@ -20,7 +34,7 @@ export function Gate({ onActivate, onOwnerMode, initialCode }) {
     }
 
     // Check family code
-    const family = findFamily(trimmed);
+    const family = findFamily(trimmed, families);
     if (family) {
       setError(false);
       onActivate(family.code);
@@ -31,12 +45,25 @@ export function Gate({ onActivate, onOwnerMode, initialCode }) {
     }
   };
 
+  const handleAdminLogin = async () => {
+    if (!adminEmail.trim() || !onAdminLogin) return;
+    setAdminSending(true);
+    setAdminError(null);
+    const { error } = await onAdminLogin(adminEmail.trim());
+    setAdminSending(false);
+    if (error) {
+      setAdminError(error.message);
+    } else {
+      setAdminSent(true);
+    }
+  };
+
   // Auto-submit if initialCode is provided (magic link)
   useEffect(() => {
     if (initialCode && !autoSubmitted.current) {
       autoSubmitted.current = true;
       const trimmed = initialCode.trim().toUpperCase();
-      const family = findFamily(trimmed);
+      const family = findFamily(trimmed, families);
       if (family) {
         onActivate(family.code);
       } else {
@@ -61,7 +88,7 @@ export function Gate({ onActivate, onOwnerMode, initialCode }) {
           Family inFluency
         </h1>
         <p className="text-pencil-light text-xs font-[family-name:var(--font-typed)] mb-6">
-          Your family&rsquo;s language journey, one word at a time
+          Your family&#8217;s language journey, one word at a time
         </p>
 
         {/* Invitation card */}
@@ -81,47 +108,128 @@ export function Gate({ onActivate, onOwnerMode, initialCode }) {
             </div>
           </div>
 
-          <h2 className="font-[family-name:var(--font-hand)] text-2xl font-bold text-ink mb-1">
-            Family Secret
-          </h2>
-          <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)] mb-4">
-            Enter your invite code to unlock
-          </p>
+          {!showAdminLogin ? (
+            <>
+              <h2 className="font-[family-name:var(--font-hand)] text-2xl font-bold text-ink mb-1">
+                Family &amp; Friends Circle Key
+              </h2>
+              <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)] mb-4">
+                Enter your invite code to unlock
+              </p>
 
-          <input
-            ref={inputRef}
-            value={code}
-            onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(false); }}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            placeholder="MAPLE-TREE"
-            className={`
-              w-full px-4 py-3 bg-paper-dark border-2 rounded-sm text-center text-lg
-              font-[family-name:var(--font-hand)] font-bold tracking-wider
-              outline-none uppercase
-              ${error ? "border-red-pen" : "border-paper-line focus:border-ink"}
-              ${shaking ? "shake" : ""}
-            `}
-            autoFocus
-            autoComplete="off"
-            spellCheck="false"
-          />
+              <input
+                ref={inputRef}
+                value={code}
+                onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(false); }}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                placeholder="MAPLE-TREE"
+                className={`
+                  w-full px-4 py-3 bg-paper-dark border-2 rounded-sm text-center text-lg
+                  font-[family-name:var(--font-hand)] font-bold tracking-wider
+                  outline-none uppercase
+                  ${error ? "border-red-pen" : "border-paper-line focus:border-ink"}
+                  ${shaking ? "shake" : ""}
+                `}
+                autoFocus
+                autoComplete="off"
+                spellCheck="false"
+              />
 
-          {error && (
-            <p className="text-xs text-red-pen mt-2 font-[family-name:var(--font-typed)]">
-              Hmm, that code wasn&rsquo;t recognized
-            </p>
+              {error && (
+                <p className="text-xs text-red-pen mt-2 font-[family-name:var(--font-typed)]">
+                  Hmm, that code wasn&#8217;t recognized
+                </p>
+              )}
+
+              <Button
+                onClick={handleSubmit}
+                variant="stamp"
+                size="lg"
+                className="w-full mt-4"
+                disabled={!code.trim()}
+              >
+                Unlock
+              </Button>
+            </>
+          ) : (
+            <>
+              <h2 className="font-[family-name:var(--font-hand)] text-2xl font-bold text-ink mb-1">
+                Super Admin
+              </h2>
+
+              {adminSent ? (
+                <div className="py-4">
+                  <div className="text-3xl mb-2">&#9993;</div>
+                  <p className="text-sm text-ink font-bold mb-1">Check your inbox</p>
+                  <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)]">
+                    We sent a magic link to<br />
+                    <span className="font-bold text-pencil">{adminEmail}</span>
+                  </p>
+                  <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)] mt-3">
+                    Click the link in the email to sign in.
+                  </p>
+                  <button
+                    onClick={() => { setAdminSent(false); setAdminEmail(""); }}
+                    className="text-xs text-blue-ink stamp-btn mt-3"
+                  >
+                    Send again
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)] mb-4">
+                    Enter your admin email for a magic sign-in link
+                  </p>
+
+                  <input
+                    type="email"
+                    value={adminEmail}
+                    onChange={(e) => { setAdminEmail(e.target.value); setAdminError(null); }}
+                    onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
+                    placeholder="you@email.com"
+                    className="w-full px-4 py-3 bg-paper-dark border-2 border-paper-line rounded-sm text-center text-sm
+                      font-[family-name:var(--font-typed)] outline-none focus:border-ink"
+                    autoFocus
+                    autoComplete="email"
+                  />
+
+                  {adminError && (
+                    <p className="text-xs text-red-pen mt-2 font-[family-name:var(--font-typed)]">
+                      {adminError}
+                    </p>
+                  )}
+
+                  <Button
+                    onClick={handleAdminLogin}
+                    variant="stamp"
+                    size="lg"
+                    className="w-full mt-4"
+                    disabled={!adminEmail.trim() || adminSending}
+                  >
+                    {adminSending ? "Sending..." : "Send Magic Link"}
+                  </Button>
+                </>
+              )}
+
+              <button
+                onClick={() => { setShowAdminLogin(false); setAdminError(null); setAdminSent(false); }}
+                className="text-xs text-pencil-light stamp-btn mt-3 hover:text-ink"
+              >
+                &larr; Back to family code
+              </button>
+            </>
           )}
-
-          <Button
-            onClick={handleSubmit}
-            variant="stamp"
-            size="lg"
-            className="w-full mt-4"
-            disabled={!code.trim()}
-          >
-            Unlock
-          </Button>
         </div>
+
+        {/* Admin login toggle */}
+        {!showAdminLogin && onAdminLogin && (
+          <button
+            onClick={() => setShowAdminLogin(true)}
+            className="text-xs text-pencil-light stamp-btn mt-4 hover:text-ink font-[family-name:var(--font-typed)]"
+          >
+            Super Admin Login
+          </button>
+        )}
       </div>
 
       <div className="flex-1 min-h-4" />

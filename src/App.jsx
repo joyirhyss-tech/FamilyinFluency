@@ -2,9 +2,10 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { XP_PER_LEVEL, YEAR_DAYS } from "./data/constants";
 import { updateStreak, shouldResetWeeklyXp, getLevel } from "./utils/xp";
-import { findFamily } from "./data/families";
+import { DEFAULT_FAMILIES, findFamily, generateFamilyCode } from "./data/families";
 import { familyKey } from "./utils/familyKey";
 import { useSupabaseSync } from "./hooks/useSupabaseSync";
+import { useAuth } from "./hooks/useAuth";
 
 const VALID_VIEWS = ["splash","join","home","dashboard","drill","speak","library","story","flashcards","collage","admin"];
 const getHashView = () => {
@@ -27,6 +28,33 @@ import { Admin } from "./views/Admin";
 import { YearCollage } from "./views/YearCollage";
 
 export default function App() {
+  // ── Super Admin auth ────────────────────────────────────────────
+  const { isSuperAdmin, signInWithEmail, signOut, loading: authLoading } = useAuth();
+
+  // ── Dynamic family registry ───────────────────────────────────
+  const [families, setFamilies] = useLocalStorage("fluency-families", DEFAULT_FAMILIES);
+
+  // Migration: merge any new DEFAULT_FAMILIES entries into localStorage list
+  useEffect(() => {
+    const existingCodes = new Set(families.map((f) => f.code));
+    const missing = DEFAULT_FAMILIES.filter((df) => !existingCodes.has(df.code));
+    if (missing.length > 0) {
+      setFamilies((prev) => [...prev, ...missing]);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const createFamily = (name) => {
+    if (families.length >= 20) return null;
+    const code = generateFamilyCode(families.map((f) => f.code));
+    const newFamily = { code, name: name.trim() || "New Circle", owner: false };
+    setFamilies((prev) => [...prev, newFamily]);
+    return newFamily;
+  };
+
+  const deleteFamily = (code) => {
+    setFamilies((prev) => prev.filter((f) => f.code !== code));
+  };
+
   // ── Family gating ──────────────────────────────────────────────
   const [activeFamily, setActiveFamily] = useLocalStorage("fluency-active-family", null);
   const [ownerMode, setOwnerMode] = useState(false);
@@ -59,7 +87,7 @@ export default function App() {
 
   // ── Family-prefixed persisted state ────────────────────────────
   const pfx = activeFamily || "__NONE__";
-  const defaultName = activeFamily ? (findFamily(activeFamily)?.name || "Family") : "Family";
+  const defaultName = activeFamily ? (findFamily(activeFamily, families)?.name || "Family") : "Family";
 
   const [players, setPlayers] = useLocalStorage(familyKey(pfx, "players"), []);
   const [weekStart, setWeekStart] = useLocalStorage(familyKey(pfx, "week-start"), null);
@@ -241,7 +269,7 @@ export default function App() {
   };
 
   const deletePlayer = (i) => {
-    if (i === 0) return;
+    if (i === 0 && !isSuperAdmin && !ownerMode) return; // Super admin / owner can delete anyone
     setPlayers((prev) => prev.filter((_, idx) => idx !== i));
     if (active === i) {
       setActive(null);
@@ -261,10 +289,14 @@ export default function App() {
 
   // ── Gate check ─────────────────────────────────────────────────
   if (!activeFamily && !ownerMode) {
+    if (authLoading) return null; // Wait for auth session check
     return (
       <Gate
+        families={families}
         onActivate={activateFamily}
         onOwnerMode={() => setOwnerMode(true)}
+        isSuperAdmin={isSuperAdmin}
+        onAdminLogin={signInWithEmail}
         initialCode={joinParam}
       />
     );
@@ -273,8 +305,11 @@ export default function App() {
   if (ownerMode && !activeFamily) {
     return (
       <OwnerDashboard
+        families={families}
+        onCreateFamily={createFamily}
+        onDeleteFamily={deleteFamily}
         onSelectFamily={activateFamily}
-        onBack={() => setOwnerMode(false)}
+        onBack={() => { setOwnerMode(false); signOut(); }}
       />
     );
   }
@@ -423,6 +458,7 @@ export default function App() {
           onDeletePlayer={deletePlayer}
           onBack={() => setView("home")}
           onSwitchFamily={deactivateFamily}
+          isSuperAdmin={isSuperAdmin || ownerMode}
         />
       );
 

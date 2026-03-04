@@ -5,7 +5,7 @@ import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Avatar } from "../components/ui/Avatar";
 
-export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer, onDeletePlayer, onBack, onSwitchFamily }) {
+export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer, onDeletePlayer, onBack, onSwitchFamily, isSuperAdmin }) {
   const [editing, setEditing] = useState(null); // player index
   const [editStreak, setEditStreak] = useState("");
   const [editName, setEditName] = useState("");
@@ -78,14 +78,14 @@ export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer,
                 <div className="flex items-center gap-2">
                   <input
                     value={editFamilyName}
-                    onChange={(e) => setEditFamilyName(e.target.value.slice(0, 20))}
+                    onChange={(e) => setEditFamilyName(e.target.value.slice(0, 30))}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && editFamilyName.trim()) {
                         onUpdateFamilyName(editFamilyName.trim());
                         setEditingFamily(false);
                       }
                     }}
-                    maxLength={20}
+                    maxLength={30}
                     className="px-2 py-1 bg-paper-dark border border-paper-line rounded-sm text-sm focus:border-ink outline-none font-[family-name:var(--font-hand)] text-lg"
                     autoFocus
                   />
@@ -133,7 +133,7 @@ export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer,
                     <p className="font-bold text-ink text-sm truncate">{p.name}</p>
                     {isFirst && (
                       <span className="text-xs bg-highlight text-ink px-1.5 py-0.5 rounded-sm font-bold">
-                        Admin
+                        Creator
                       </span>
                     )}
                   </div>
@@ -281,7 +281,7 @@ export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer,
                   >
                     Edit
                   </button>
-                  {!isFirst && (
+                  {(!isFirst || isSuperAdmin) && (
                     <button
                       onClick={() => { setConfirmDelete(i); setEditing(null); }}
                       className="text-xs text-red-pen stamp-btn px-2 py-1 border border-paper-line rounded-sm hover:bg-paper-dark"
@@ -300,7 +300,7 @@ export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer,
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-pencil uppercase tracking-wider mb-0.5">Family Secret</p>
+                <p className="text-xs font-bold text-pencil uppercase tracking-wider mb-0.5">Family &amp; Friends Circle Key</p>
                 <p className="text-xs text-pencil-light font-[family-name:var(--font-typed)]">
                   Sign out and enter a different family code
                 </p>
