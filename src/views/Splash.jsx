@@ -71,16 +71,7 @@ export function Splash({ familyName, playerCount, yearProgress, wordCount, onEnt
           >
             {playerCount > 0 ? "Add Family Member" : "Get Started"}
           </Button>
-          {wordCount > 0 && (
-            <Button
-              onClick={onCollage}
-              variant="ghost"
-              size="sm"
-              className="w-full"
-            >
-              {yearComplete ? "View Year Collage &#10022;" : "View Year Collage"}
-            </Button>
-          )}
+          {/* Collage hidden for now */}
         </div>
 
         {playerCount > 0 && (

@@ -10,7 +10,7 @@ import { useLocalStorage } from "../hooks/useLocalStorage";
 const HAND_FONTS = ["hand-caveat", "hand-patrick", "hand-indie", "hand-shadows"];
 const PROMPTS = [
   "How did practice feel?",
-  "One word for today?",
+  "Leave a one word review for today\u2019s practice, how you are feeling or what you\u2019re thinking about",
   "What are you learning?",
   "Describe your mood",
   "What surprised you?",
@@ -353,8 +353,8 @@ export function Home({
           </div>
         )}
 
-        {/* Year of Words */}
-        {players.length > 0 && yearProgress && (
+        {/* Year of Words — hidden for now */}
+        {false && players.length > 0 && yearProgress && (
           <Card onClick={onCollage} className="stamp-btn cursor-pointer">
             <div className="flex items-center justify-between">
               <div>
