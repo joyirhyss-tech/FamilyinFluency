@@ -17,20 +17,35 @@ export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer,
   const [editingFamily, setEditingFamily] = useState(false);
   const [editFamilyName, setEditFamilyName] = useState("");
 
+  const [editLangs, setEditLangs] = useState([]);
+
   const startEdit = (i) => {
     const p = players[i];
     setEditing(i);
     setEditStreak(String(p.streak));
     setEditName(p.name);
     setEditPin(p.pin || "");
-    // Initialize langDiffs for ALL player languages (fill gaps from legacy p.diff)
     const langs = p.langs || [p.lang];
+    setEditLangs([...langs]);
     const initialDiffs = {};
     langs.forEach((lang) => {
       initialDiffs[lang] = p.langDiffs?.[lang] ?? p.diff ?? 0;
     });
     setEditLangDiffs(initialDiffs);
     setConfirmDelete(null);
+  };
+
+  const toggleEditLang = (lang) => {
+    setEditLangs((prev) => {
+      if (prev.includes(lang)) {
+        if (prev.length <= 1) return prev; // must keep at least one
+        const next = prev.filter((l) => l !== lang);
+        setEditLangDiffs((d) => { const copy = { ...d }; delete copy[lang]; return copy; });
+        return next;
+      }
+      setEditLangDiffs((d) => ({ ...d, [lang]: 0 }));
+      return [...prev, lang];
+    });
   };
 
   const saveEdit = () => {
@@ -42,6 +57,7 @@ export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer,
       name: editName.trim() || players[editing].name,
       streak: Math.max(0, parseInt(editStreak) || 0),
       pin: editPin.length === 3 ? editPin : players[editing].pin,
+      langs: editLangs,
       langDiffs,
       diff: maxDiff,
     });
@@ -214,13 +230,35 @@ export function Admin({ familyName, onUpdateFamilyName, players, onUpdatePlayer,
                     </div>
                   </div>
 
+                  {/* Edit Languages */}
+                  <div>
+                    <label className="text-xs font-bold text-pencil uppercase tracking-wider block mb-1">
+                      Languages
+                    </label>
+                    <div className="flex gap-2 flex-wrap">
+                      {Object.entries(LANGS).map(([key, lang]) => (
+                        <button
+                          key={key}
+                          onClick={() => toggleEditLang(key)}
+                          className={`px-3 py-1.5 rounded-sm border-2 text-xs font-bold stamp-btn ${
+                            editLangs.includes(key)
+                              ? "border-ink bg-highlight-soft text-ink"
+                              : "border-paper-line text-pencil hover:border-pencil-light"
+                          }`}
+                        >
+                          {lang.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Edit Language Levels */}
                   <div>
                     <label className="text-xs font-bold text-pencil uppercase tracking-wider block mb-1">
                       Language Levels
                     </label>
                     <div className="space-y-2">
-                      {(players[editing]?.langs || [players[editing]?.lang]).map((lang) => {
+                      {editLangs.map((lang) => {
                         const currentDiff = editLangDiffs[lang] ?? players[editing]?.diff ?? 0;
                         return (
                           <div key={lang} className="paper-card p-2.5">
