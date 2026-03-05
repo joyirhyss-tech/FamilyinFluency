@@ -45,7 +45,7 @@ export async function pushFamilyData(supabase, familyCode, local) {
       level: p.level ?? 1,
       streak: p.streak ?? 0,
       last_active_date: p.lastActiveDate || null,
-      pin: null, // PINs are local-only — never sync to Supabase
+      pin: p.pin || null,
       start_date: p.startDate || null,
       sort_order: i,
       updated_at: now,
