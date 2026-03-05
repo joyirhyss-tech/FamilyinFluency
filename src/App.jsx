@@ -81,8 +81,10 @@ export default function App() {
 
   const deactivateFamily = () => {
     setActiveFamily(null);
-    setOwnerMode(false);
     setActive(null);
+    if (!isSuperAdmin) {
+      setOwnerMode(false);
+    }
     setView("splash");
   };
 
