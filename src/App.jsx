@@ -361,6 +361,7 @@ export default function App() {
           onEnterHub={() => setView("home")}
           onGetStarted={() => setView("join")}
           onCollage={() => setView("collage")}
+          onSwitchFamily={deactivateFamily}
         />
       );
 

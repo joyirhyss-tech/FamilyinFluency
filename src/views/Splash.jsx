@@ -1,13 +1,13 @@
 import { Button } from "../components/ui/Button";
 import { YEAR_DAYS } from "../data/constants";
 
-export function Splash({ familyName, playerCount, yearProgress, wordCount, onEnterHub, onGetStarted, onCollage }) {
+export function Splash({ familyName, playerCount, yearProgress, wordCount, onEnterHub, onGetStarted, onCollage, onSwitchFamily }) {
   const daysElapsed = yearProgress?.elapsed ?? 0;
   const yearComplete = yearProgress?.complete ?? false;
   const pct = Math.min(100, (daysElapsed / YEAR_DAYS) * 100);
 
   return (
-    <div className="h-[100dvh] flex flex-col items-center bg-paper px-6 text-center notebook-paper overflow-hidden">
+    <div className="h-[100dvh] flex flex-col items-center bg-paper px-6 text-center notebook-paper overflow-hidden relative">
       {/* Top spacer — flexes to push content toward center */}
       <div className="flex-1 min-h-8" />
       {/* Notebook title page feel */}
@@ -104,6 +104,16 @@ export function Splash({ familyName, playerCount, yearProgress, wordCount, onEnt
       </div>
       {/* Bottom spacer — matches top for centering */}
       <div className="flex-1 min-h-4" />
+
+      {/* Exit to Gate */}
+      {onSwitchFamily && (
+        <button
+          onClick={onSwitchFamily}
+          className="absolute bottom-4 left-4 text-pencil-light/50 hover:text-pencil-light stamp-btn p-2 text-xs font-[family-name:var(--font-typed)]"
+        >
+          ← Switch Circle
+        </button>
+      )}
     </div>
   );
 }
